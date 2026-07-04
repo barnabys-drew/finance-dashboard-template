@@ -38,7 +38,7 @@ MERCHANTS = [
     ("Target",                  "GENERAL_MERCHANDISE",  25, 140),
     ("Nike",                    "GENERAL_MERCHANDISE",  40, 160),
     ("Walgreens Pharmacy",      "MEDICAL",              12, 65),
-    ("Bobbie Baby Formula",     "GENERAL_MERCHANDISE",  72, 144),
+    ("PetSmart",                "GENERAL_MERCHANDISE",  35, 110),
     ("State Farm Insurance",    "INSURANCE",            142, 142),
 ]
 
@@ -167,11 +167,11 @@ def build_provider_balances():
 
 def build_config():
     return {
-        "baby_keywords": ["bobbie"],
+        "baby_keywords": [],
         "ai_keywords": ["anthropic", "claude", "cursor"],
         "household_keywords": ["whole foods", "costco", "trader joe", "target", "walgreens"],
         "health_keywords": [],
-        "pet_keywords": [],
+        "pet_keywords": ["petsmart"],
         "transport_keywords": ["shell", "transit"],
         "bucket_overrides": {},
     }
