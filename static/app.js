@@ -911,6 +911,10 @@ function renderInsights(ins) {
       tip: `Avg ${fmt(Math.round(monthlyAvg('other')))}/mo not yet categorized (misc services, government, fees). Reclassify specific charges via bucket_overrides in ~/.finance-viz/config.json.`
     },
   ];
+  // Baby is an opt-in tile: hidden until baby_keywords is configured (or an
+  // override routes spend into it), so installs that don't use it never see it.
+  const shownItems = items.filter(i =>
+    i.key !== 'baby' || (data.baby_keywords || []).length > 0 || (ins.baby_total || 0) > 0);
   INSIGHT_LABELS = Object.fromEntries(items.map(i => [i.key, i.label]));
 
   // Budget progress bar per tile (only for buckets with a config.json budget).
@@ -939,7 +943,7 @@ function renderInsights(ins) {
       </div>`;
   };
 
-  document.getElementById('insights-content').innerHTML = items.map(item => `
+  document.getElementById('insights-content').innerHTML = shownItems.map(item => `
     <div class="col-span-12 sm:col-span-6 md:col-span-4">
       <div class="insight-block" data-insight-key="${item.key}" onclick="toggleInsight('${item.key}')" style="cursor:pointer">
         <div class="insight-bar" style="background:${item.color}"></div>
