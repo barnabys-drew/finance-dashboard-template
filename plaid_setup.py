@@ -15,6 +15,10 @@ from flask import Flask, request, jsonify, render_template_string
 
 LOG_FILE = Path.home() / ".finance-viz" / "plaid_setup.log"
 
+# First run on a fresh machine: the data dir doesn't exist yet, and the
+# FileHandler below would crash at import time without it.
+LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s %(levelname)s %(message)s',

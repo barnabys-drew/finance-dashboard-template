@@ -31,6 +31,10 @@ CONFIG_FILE   = BASE_DIR / "config.json"
 PROVIDER_FILE = BASE_DIR / "provider_balances.json"
 LOG_FILE      = BASE_DIR / "refresh.log"
 
+# First run on a fresh machine: the data dir doesn't exist yet, and the
+# FileHandler below would crash at import time without it.
+BASE_DIR.mkdir(parents=True, exist_ok=True)
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s %(levelname)s %(message)s",
