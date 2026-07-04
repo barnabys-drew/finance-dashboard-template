@@ -168,6 +168,17 @@ def _post_plaid_json(endpoint, payload):
 
 def refresh_balances(client, tokens):
     balances = {}
+    # Previous snapshot so a transient Plaid failure (e.g. a 500 on one
+    # institution) keeps that institution's cached balances instead of
+    # replacing them with an error stub — which made the accounts vanish
+    # from Net Worth until the next successful refresh.
+    prev = {}
+    if BALANCE_FILE.exists():
+        try:
+            with open(BALANCE_FILE) as f:
+                prev = json.load(f)
+        except Exception:
+            prev = {}
     for label, token_data in tokens.items():
         access_token = token_data["access_token"]
         institution  = token_data["institution"]
@@ -198,7 +209,12 @@ def refresh_balances(client, tokens):
             log.info("%-20s %d accounts  total=$%.2f", label, len(accounts), total)
         except Exception as e:
             log.error("balance fetch failed for %s: %s", label, e)
-            balances[label] = {"institution": institution, "error": str(e)}
+            if label in prev and "error" not in prev[label]:
+                log.info("%-20s keeping cached balances (as of %s)",
+                         label, prev[label].get("as_of", "?"))
+                balances[label] = prev[label]
+            else:
+                balances[label] = {"institution": institution, "error": str(e)}
     return balances
 
 
@@ -269,10 +285,24 @@ def refresh_transactions(client, tokens, cursors):
 def refresh_holdings(tokens, balances, cfg, secret):
     """Fetch investment holdings for Plaid items that appear to contain investments."""
     results = {}
+    prev = {}
+    if HOLDINGS_FILE.exists():
+        try:
+            with open(HOLDINGS_FILE) as f:
+                prev = json.load(f)
+        except Exception:
+            prev = {}
 
     for label, token_data in tokens.items():
         balance_data = balances.get(label, {})
-        if "error" in balance_data or not _has_investment_accounts(balance_data):
+        if "error" in balance_data:
+            # Same cache-preserving rule as balances: a failed institution
+            # keeps its last good holdings rather than dropping them.
+            if label in prev:
+                log.info("%-20s keeping cached holdings", label)
+                results[label] = prev[label]
+            continue
+        if not _has_investment_accounts(balance_data):
             continue
 
         access_token = token_data["access_token"]
