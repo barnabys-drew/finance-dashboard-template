@@ -76,7 +76,7 @@ def run_providers():
         log.info("No providers configured in config.json — skipping")
         return
 
-    results = []
+    results, failed = [], False
     for p in provider_list:
         log.info("Running provider: %s", p.name)
         try:
@@ -89,10 +89,28 @@ def run_providers():
                      f" — NOTE: {data['note']}" if data.get("note") else "")
         except ProviderError as e:
             log.error("  Provider '%s' failed: %s", p.name, e)
-            results.append({"account_name": p.name, "error": str(e)})
+            failed = True
         except Exception as e:
             log.error("  Provider '%s' unexpected error: %s", p.name, e)
-            results.append({"account_name": p.name, "error": str(e)})
+            failed = True
+
+    # A failed provider must actually KEEP its cached balance: carry over any
+    # previous non-error entry that no fresh result replaces. Without this, a
+    # failed scrape overwrote the file with an error stub and the account
+    # vanished from Net Worth until the next successful refresh.
+    if failed and PROVIDER_FILE.exists():
+        try:
+            with open(PROVIDER_FILE) as f:
+                prev = json.load(f)
+            fresh_names = {r.get("account_name") for r in results}
+            carried = [r for r in prev
+                       if not r.get("error") and r.get("account_name") not in fresh_names]
+            if carried:
+                log.info("Keeping cached data for %d provider account(s) after failure: %s",
+                         len(carried), ", ".join(r["account_name"] for r in carried))
+                results.extend(carried)
+        except Exception as e:
+            log.error("Could not carry over cached provider data: %s", e)
 
     if DRY_RUN:
         print("\n--- PROVIDER BALANCES ---")
