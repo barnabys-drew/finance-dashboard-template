@@ -1,0 +1,28 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+.Python
+
+# Environment / secrets
+.env
+*.secret
+.plaid_secret
+
+# Local data files — all live in ~/.finance-viz/, listed here defensively
+plaid_tokens.json
+plaid_balances.json
+plaid_transactions.json
+plaid_cursors.json
+provider_balances.json
+config.json
+*.log
+
+# Tailwind standalone CLI binary (fetch via scripts/setup-tailwind.sh)
+bin/tailwindcss
+
+# Editor noise
+.DS_Store
+.vscode/
+*.swp

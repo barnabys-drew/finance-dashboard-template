@@ -1,0 +1,5 @@
+# Dev/test dependencies. Install with:
+#   source venv/bin/activate && pip install -r requirements-dev.txt
+# Run the suite with:
+#   python3 -m pytest -q
+pytest>=8.0

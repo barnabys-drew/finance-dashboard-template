@@ -1,0 +1,176 @@
+  <!-- Net Worth Tab -->
+  <div id="view-networth" style="display:none">
+    <!-- NW Summary Cards -->
+    <div class="grid grid-cols-12 gap-4 mb-6">
+      <div class="col-span-6 sm:col-span-3">
+        <div class="card-panel stat-card">
+          <div class="stat-value" id="nw-total">—</div>
+          <div class="stat-label">Owned Assets</div>
+          <div class="nw-small" id="nw-unvested-note" style="margin-top:3px;color:#8b949e"></div>
+        </div>
+      </div>
+      <div class="col-span-6 sm:col-span-3">
+        <div class="card-panel stat-card">
+          <div class="stat-value" id="nw-liquid">—</div>
+          <div class="stat-label">Liquid (Cash + HYSA)</div>
+        </div>
+      </div>
+      <div class="col-span-6 sm:col-span-3">
+        <div class="card-panel stat-card">
+          <div class="stat-value" id="nw-retirement">—</div>
+          <div class="stat-label">Retirement Accounts</div>
+        </div>
+      </div>
+      <div class="col-span-6 sm:col-span-3">
+        <div class="card-panel stat-card">
+          <div class="stat-value" id="nw-vested">—</div>
+          <div class="stat-label">Equity Vested (Available)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NW Charts Row -->
+    <div class="grid grid-cols-12 gap-4 mb-6">
+      <div class="col-span-12 lg:col-span-4">
+        <div class="card-panel p-4 h-full">
+          <div class="section-title">By Account</div>
+          <canvas id="nw-donut" style="max-height:300px"></canvas>
+        </div>
+      </div>
+      <div class="col-span-12 lg:col-span-8">
+        <div class="card-panel p-4 h-full">
+          <div class="section-title">Account Balances</div>
+          <canvas id="nw-bars" style="max-height:300px"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Equity Vesting Schedule -->
+    <div class="card-panel p-4 mb-6" id="nw-vesting-panel">
+      <div class="flex justify-between items-start gap-4 mb-2">
+        <div>
+          <div class="section-title mb-1">Unvested RSU Vesting Schedule</div>
+          <div class="nw-small" id="nw-vesting-subtitle">Unvested RSUs — pre-tax estimate; not yet owned.</div>
+        </div>
+        <div class="text-right nw-small" id="nw-vesting-total">—</div>
+      </div>
+      <div id="nw-vesting-chart-wrap" style="display:none">
+        <canvas id="nw-vesting-chart" style="max-height:240px"></canvas>
+        <div class="nw-small mt-2" id="nw-vesting-highlight" style="color:#8b949e"></div>
+      </div>
+      <div id="nw-vesting-body" class="mt-4"></div>
+    </div>
+
+    <!-- Asset-class concentration cards — one per donut slice, built in renderNetWorth.
+         Balanced rows + flex-fill keep the block uniform (no empty gaps) for any count. -->
+    <div id="nw-class-cards" class="flex flex-col gap-4 mb-6"></div>
+
+    <!-- Concentration Charts -->
+    <div class="grid grid-cols-12 gap-4 mb-6">
+      <div class="col-span-12 lg:col-span-4">
+        <div class="card-panel p-4 h-full">
+          <div class="section-title">Asset Class Exposure</div>
+          <canvas id="nw-asset-class" style="max-height:300px"></canvas>
+        </div>
+      </div>
+      <div class="col-span-12 lg:col-span-8">
+        <div class="card-panel p-4 h-full">
+          <div class="section-title">Top Positions / Account Proxies</div>
+          <canvas id="nw-top-positions" style="max-height:300px"></canvas>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- Positions Table -->
+    <div class="card-panel p-4 mb-6">
+      <div class="section-title">All Positions</div>
+      <div style="max-height:420px;overflow-y:auto">
+        <table class="table table-dark mb-0" style="border-color:#21262d">
+          <thead>
+            <tr>
+              <th>Account</th>
+              <th>Symbol</th>
+              <th>Description</th>
+              <th>Class</th>
+              <th>Vesting</th>
+              <th class="text-right">Value</th>
+              <th class="text-right">% Investable</th>
+            </tr>
+          </thead>
+          <tbody id="nw-positions-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Fidelity Positions -->
+    <div class="card-panel p-4 mb-6">
+      <div class="flex justify-between items-start gap-4 mb-2">
+        <div>
+          <div class="section-title mb-1">Fidelity Positions</div>
+          <div class="nw-small" id="nw-fidelity-positions-subtitle">Automatically refreshed from Plaid Investments on startup.</div>
+        </div>
+        <div class="text-right nw-small" id="nw-fidelity-positions-total">—</div>
+      </div>
+      <div style="max-height:460px;overflow-y:auto">
+        <table class="table table-dark mb-0" style="border-color:#21262d">
+          <thead>
+            <tr>
+              <th>Account</th>
+              <th>Symbol</th>
+              <th>Description</th>
+              <th class="text-right">Qty</th>
+              <th class="text-right">Price</th>
+              <th class="text-right">Value</th>
+              <th class="text-right">Gain/Loss</th>
+              <th class="text-right">% Account</th>
+            </tr>
+          </thead>
+          <tbody id="nw-fidelity-positions-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Principal Positions -->
+    <div class="card-panel p-4 mb-6">
+      <div class="flex justify-between items-start gap-4 mb-2">
+        <div>
+          <div class="section-title mb-1">Principal 401(k) Positions</div>
+          <div class="nw-small" id="nw-principal-positions-subtitle">Automatically refreshed from Plaid Investments on startup.</div>
+        </div>
+        <div class="text-right nw-small" id="nw-principal-positions-total">—</div>
+      </div>
+      <div style="max-height:460px;overflow-y:auto">
+        <table class="table table-dark mb-0" style="border-color:#21262d">
+          <thead>
+            <tr>
+              <th>Account</th>
+              <th>Symbol</th>
+              <th>Description</th>
+              <th class="text-right">Qty</th>
+              <th class="text-right">Price</th>
+              <th class="text-right">Value</th>
+              <th class="text-right">Gain/Loss</th>
+              <th class="text-right">% Account</th>
+            </tr>
+          </thead>
+          <tbody id="nw-principal-positions-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Position News -->
+    <div class="card-panel p-4 mb-6">
+      <div class="flex justify-between items-start gap-4 mb-2">
+        <div>
+          <div class="section-title mb-1">Position News</div>
+          <div class="nw-small" id="nw-position-news-subtitle">Yahoo-style headlines for your current holdings.</div>
+        </div>
+        <div class="text-right nw-small" id="nw-position-news-meta">—</div>
+      </div>
+      <div id="nw-position-news-body"></div>
+    </div>
+
+    <!-- Footnotes -->
+    <div class="nw-small mb-6" id="nw-data-quality-footnote" style="color:#6e7681;font-size:0.72rem;line-height:1.5"></div>
+  </div>

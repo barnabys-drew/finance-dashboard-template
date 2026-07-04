@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ──────────────────────────────────────────────────────────────────────────
+   App styles that aren't expressible as inline utilities. Component classes
+   that the inline <script> injects (card-panel, stat-*, insight-*, etc.) are
+   moved here from the template's <style> block as each view is migrated.
+   ────────────────────────────────────────────────────────────────────────── */
+
+/* Card hover-lift — add the `card-hover` class to any card-panel for the effect. */
+.card-hover { transition: transform .15s ease, box-shadow .15s ease; }
+.card-hover:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0, 0, 0, .35); }
+
+/* Numbers read as a designed dashboard when digits align. */
+.tnum { font-variant-numeric: tabular-nums; }
+
+/* Tab view enter animation (applied/retriggered by switchTab). */
+@keyframes viewFade { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: none; } }
+.view-anim { animation: viewFade .28s ease both; }
+
+/* Layout/table base previously provided by Bootstrap (now removed). */
+.container-fluid { width: 100%; }
+.table { width: 100%; border-collapse: collapse; }
+.table th, .table td { padding: .5rem; border-bottom: 1px solid #21262d; }
+.table.mb-0 { margin-bottom: 0; }

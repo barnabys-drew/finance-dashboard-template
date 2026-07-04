@@ -1,0 +1,149 @@
+  <!-- Spending Tab -->
+  <div id="view-spending">
+
+  <!-- Month Picker -->
+  <div id="month-picker" class="mb-4" style="display:flex;flex-wrap:wrap;gap:4px;align-items:center"></div>
+
+  <!-- Summary Cards -->
+  <div class="grid grid-cols-12 gap-4 mb-6">
+    <div class="col-span-6 sm:col-span-3">
+      <div class="card-panel stat-card">
+        <div class="stat-value" id="stat-total">—</div>
+        <div class="stat-label">Total Spending</div>
+      </div>
+    </div>
+    <div class="col-span-6 sm:col-span-3">
+      <div class="card-panel stat-card">
+        <div class="stat-value" id="stat-savings" style="font-size:1.45rem">—</div>
+        <div class="stat-label" id="stat-savings-label">Net cash flow (Income − Spend)</div>
+        <div id="stat-savings-into" style="margin-top:8px;padding-top:8px;border-top:1px solid #21262d;display:none">
+          <div class="stat-value" id="stat-savings-into-val" style="font-size:1.45rem;color:#58a6ff">—</div>
+          <div class="stat-label">Into savings</div>
+        </div>
+        <div id="stat-savings-total" style="margin-top:8px;padding-top:8px;border-top:1px solid #30363d;display:none">
+          <div class="stat-value" id="stat-savings-total-val" style="font-size:1.45rem">—</div>
+          <div class="stat-label">Total (cash flow + savings)</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-span-6 sm:col-span-3">
+      <div class="card-panel stat-card">
+        <div class="stat-value" id="stat-top-cat">—</div>
+        <div class="stat-label">Biggest Category</div>
+      </div>
+    </div>
+    <div class="col-span-6 sm:col-span-3">
+      <div class="card-panel stat-card">
+        <div class="stat-value" id="stat-avg-day">—</div>
+        <div class="stat-label">Avg Spend / Day</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Budget summary (hidden unless config.json has a `budgets` key) -->
+  <div class="card-panel p-4 mb-6" id="budget-summary" style="display:none"></div>
+
+  <!-- Charts Row -->
+  <div class="grid grid-cols-12 gap-4 mb-6">
+    <div class="col-span-12 lg:col-span-4">
+      <div class="card-panel p-4 h-full">
+        <div class="section-title">Spending by Category</div>
+        <canvas id="cat-chart" style="max-height:280px"></canvas>
+      </div>
+    </div>
+    <div class="col-span-12 lg:col-span-8">
+      <div class="card-panel p-4 h-full">
+        <div class="flex justify-between items-center mb-2">
+          <div class="section-title mb-0">Daily Spending</div>
+          <div style="font-size:0.72rem;color:#6e7681">Click a bar to see transactions</div>
+        </div>
+        <canvas id="time-chart" style="max-height:260px"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Day Drilldown -->
+  <div class="card-panel p-4 mb-6" id="day-drilldown-panel" style="display:none">
+    <div class="flex justify-between items-center mb-4">
+      <div class="section-title mb-0" id="day-drilldown-title">Day — Transactions</div>
+      <button onclick="clearDayDrilldown()" style="background:none;border:none;color:#6e7681;font-size:0.72rem;cursor:pointer">✕ clear</button>
+    </div>
+    <div id="day-drilldown-body"></div>
+  </div>
+
+  <!-- Monthly Comparison -->
+  <div class="card-panel p-4 mb-6">
+    <div class="flex justify-between items-center mb-4">
+      <div class="section-title mb-0">Monthly Spending</div>
+      <div id="month-drilldown-hint" style="font-size:0.72rem;color:#6e7681">Click a bar to break down by category</div>
+    </div>
+    <canvas id="monthly-chart" style="max-height:240px"></canvas>
+  </div>
+
+  <!-- Month Drilldown -->
+  <div class="card-panel p-4 mb-6" id="month-drilldown-panel" style="display:none">
+    <div class="flex justify-between items-center mb-4">
+      <div class="section-title mb-0" id="month-drilldown-title">Month — Category Breakdown</div>
+      <button onclick="clearMonthDrilldown()" style="background:none;border:none;color:#6e7681;font-size:0.72rem;cursor:pointer">✕ clear</button>
+    </div>
+    <canvas id="month-drilldown-chart" style="max-height:260px"></canvas>
+  </div>
+
+  <!-- Category Drilldown (shown when a category is active) -->
+  <div class="card-panel p-4 mb-6" id="drilldown-panel" style="display:none">
+    <div class="section-title" id="drilldown-title">Category — Monthly Breakdown</div>
+    <canvas id="drilldown-chart" style="max-height:220px"></canvas>
+  </div>
+
+  <!-- Top Merchants -->
+  <div class="card-panel p-4 mb-6">
+    <div class="section-title">Top Merchants</div>
+    <canvas id="merchant-chart" style="max-height:260px"></canvas>
+  </div>
+
+  <!-- Savings Insights -->
+  <div class="card-panel p-4 mb-6">
+    <div class="section-title">Savings Opportunities</div>
+    <div class="grid grid-cols-12 gap-4" id="insights-content"></div>
+  </div>
+
+  <!-- Insight drill-down (shared, accordion — one open at a time) -->
+  <div class="card-panel p-4 mb-6" id="insight-drilldown-panel" style="display:none">
+    <div class="flex justify-between items-center mb-2">
+      <div class="section-title mb-0" id="insight-drilldown-title"></div>
+      <button onclick="closeInsight()" style="background:none;border:none;color:#6e7681;font-size:0.72rem;cursor:pointer">✕ close</button>
+    </div>
+    <div id="insight-drilldown-body"></div>
+  </div>
+
+  <!-- Transactions -->
+  <div class="card-panel p-4">
+    <div class="flex justify-between items-center mb-4 flex-wrap gap-2">
+      <div class="section-title mb-0">All Transactions</div>
+      <input type="text" class="form-control search-box" id="tx-search" placeholder="Search..." style="width:200px">
+    </div>
+    <div id="cat-filters" class="mb-4"></div>
+    <div style="max-height:420px;overflow-y:auto">
+      <table class="table table-dark mb-0" id="tx-table" style="border-color:#21262d">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Description</th>
+            <th>Category</th>
+            <th>Account</th>
+            <th class="text-right">Amount</th>
+          </tr>
+        </thead>
+        <tbody id="tx-body"></tbody>
+        <tfoot id="tx-foot">
+          <tr style="position:sticky;bottom:0;background:#0d1117;border-top:2px solid #30363d">
+            <td colspan="4" style="font-weight:600;color:#c9d1d9" id="tx-foot-label">Total</td>
+            <td class="text-right" style="font-weight:700" id="tx-foot-total"></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    <div class="text-muted mt-2" style="font-size:0.75rem" id="tx-count-label"></div>
+  </div>
+
+  </div><!-- end view-spending -->

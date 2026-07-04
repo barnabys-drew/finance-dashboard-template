@@ -1,0 +1,68 @@
+{
+  "plaid_client_id": "YOUR_PLAID_CLIENT_ID",
+  "plaid_secret_1password_item": "Finance Dashboard Plaid",
+  "plaid_secret_1password_field": "secret",
+
+  "categories": {
+    "Utilities":      ["comcast", "xfinity", "verizon", "at&t", "t-mobile"],
+    "Insurance":      ["state farm", "geico", "allstate", "progressive"],
+    "Food & Dining":  ["doordash", "grubhub", "uber eats", "mcdonald", "chipotle", "starbucks"],
+    "Transportation": ["uber", "lyft", "shell", "exxon", "chevron", "amtrak"],
+    "Shopping":       ["amazon", "amzn", "nike", "best buy", "etsy"],
+    "Subscriptions":  ["netflix", "spotify", "hulu", "apple.com/bill", "youtube", "1password"],
+    "Entertainment":  ["steam", "playstation", "nintendo"],
+    "Cash / ATM":     ["atm withdraw"],
+    "Bank Fees":      ["atm fee", "overdraft"],
+    "Savings":        ["transfer to savings"],
+    "Investments":    ["vanguard", "schwab", "interactive brok"]
+  },
+
+  "utility_keywords": ["duke energy", "con edison", "pg&e", "comcast", "verizon"],
+  "household_keywords": ["whole foods", "costco", "trader joe", "aldi", "walgreens"],
+  "baby_keywords": [],
+  "pet_keywords": ["petsmart", "petco", "banfield", "animal hospital"],
+  "health_keywords": [],
+  "transport_keywords": [],
+  "ai_keywords": ["anthropic", "claude", "openai", "chatgpt", "cursor"],
+
+  "budgets": {
+    "rent": 2000,
+    "household": 1200,
+    "food": 400,
+    "dining": 300,
+    "transport": 250,
+    "subs": 60
+  },
+
+  "bucket_overrides": {},
+  "merchant_aliases": {},
+  "account_display_names": {},
+
+  "employer_symbols": [],
+  "employer_keywords": [],
+
+  "walgreens": {
+    "enabled": false,
+    "match_days": 10
+  },
+
+  "providers": [
+    {
+      "type": "shareworks",
+      "1password_item": "Shareworks",
+      "url": "https://shareworks.solium.com/solium/servlet/userLogin.do",
+      "symbol": "ACME"
+    }
+  ],
+
+  "concentration": {
+    "thresholds": {
+      "single_position_warning": 0.15,
+      "single_position_critical": 0.25,
+      "single_account_warning": 0.35,
+      "single_account_critical": 0.50,
+      "employer_equity_warning": 0.20,
+      "employer_equity_critical": 0.35
+    }
+  }
+}

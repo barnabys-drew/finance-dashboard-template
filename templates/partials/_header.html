@@ -1,0 +1,23 @@
+  <!-- Header -->
+  <div class="flex justify-between items-start mb-4">
+    <div>
+      <h1>Family Finance Dashboard</h1>
+      <div class="subtitle" id="period-label">Loading statements...</div>
+    </div>
+    <div class="flex flex-col items-end" style="gap:10px">
+      <label class="money-toggle" title="Hide all dollar amounts — handy when showing the dashboard to others">
+        <input type="checkbox" id="conceal-check">
+        <span id="conceal-label">Conceal $</span>
+      </label>
+      <div class="flex items-stretch" style="gap:10px">
+        <div class="income-bar text-right" id="checking-badge" title="Available balance in Chase Checking — refreshed via Plaid" style="display:none">
+          <div style="font-size:0.7rem;color:#7ee2a8;text-transform:uppercase;letter-spacing:0.08em">Checking <span id="checking-badge-asof" style="font-size:0.58rem;color:#6e7681;text-transform:none;letter-spacing:0"></span></div>
+          <div style="font-size:1.4rem;font-weight:700;color:#3fb950" id="checking-badge-val">—</div>
+        </div>
+        <div class="income-bar text-right" id="income-bar" style="display:none!important">
+          <div style="font-size:0.7rem;color:#8b949e;text-transform:uppercase;letter-spacing:0.08em">Income this period</div>
+          <div style="font-size:1.4rem;font-weight:700;color:#3fb950" id="income-val">—</div>
+        </div>
+      </div>
+    </div>
+  </div>

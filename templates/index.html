@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Family Finance Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="{{ url_for('static', filename='app.css') }}" rel="stylesheet">
+  <!-- Vendored locally (Chart.js 4.4.0, Lucide 0.460.0) so charts/icons never
+       depend on a CDN being reachable — a failed CDN fetch silently blanked
+       every chart and only a hard refresh fixed it. -->
+  <script src="{{ url_for('static', filename='vendor/chart.umd.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='vendor/lucide.min.js') }}"></script>
+  <style>
+    body { background: #0f1117; color: #e1e4e8; font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; min-height: 100vh; -webkit-font-smoothing: antialiased; }
+    .card-panel { background: linear-gradient(180deg, #1d212a 0%, #181b21 100%); border: 1px solid #2d3139; border-radius: 12px; box-shadow: 0 1px 0 rgba(255,255,255,0.02) inset, 0 2px 8px rgba(0,0,0,0.18); }
+    .stat-card { padding: 20px 16px; text-align: center; }
+    .stat-value { font-size: 1.8rem; font-weight: 700; color: #fff; line-height: 1.1; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+    .stat-label { font-size: 0.72rem; color: #8b949e; text-transform: uppercase; letter-spacing: 0.08em; margin-top: 4px; }
+    .section-title { font-size: 0.72rem; color: #8b949e; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 14px; font-weight: 600; }
+    .insight-block { background: linear-gradient(180deg, #181d25 0%, #14181e 100%); border: 1px solid #21262d; border-radius: 10px; padding: 14px 16px; transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease; }
+    .insight-block:hover { transform: translateY(-2px); border-color: #3d444d; box-shadow: 0 8px 22px rgba(0,0,0,.35); }
+    .insight-bar { height: 3px; border-radius: 2px; margin-bottom: 10px; }
+    .filter-btn { border-radius: 20px; font-size: 0.72rem; padding: 3px 10px; margin: 2px; border-width: 1px; background: transparent; cursor: pointer; transition: all 0.15s; }
+    .filter-btn:hover { opacity: 0.85; }
+    .filter-btn.active { color: #0d1117 !important; }
+    .cat-badge { font-size: 0.68rem; padding: 2px 7px; border-radius: 8px; white-space: nowrap; }
+    thead th { background: #161b22 !important; color: #8b949e; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; border-color: #21262d !important; font-weight: 600; }
+    tbody tr { border-color: #21262d !important; }
+    tbody tr:hover { background: rgba(255,255,255,0.03) !important; }
+    tbody td { color: #e1e4e8; font-size: 0.82rem; border-color: #21262d !important; vertical-align: middle; }
+    .tx-desc { max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .amount-exp { color: #f8a5a5; font-weight: 500; }
+    .amount-inc { color: #3fb950; font-weight: 500; }
+    .search-box { background: #161b22 !important; border-color: #2d3139 !important; color: #e1e4e8 !important; border-radius: 8px; font-size: 0.82rem; }
+    .search-box::placeholder { color: #6e7681; }
+    .search-box:focus { border-color: #58a6ff !important; box-shadow: none !important; }
+    .month-btn { border-radius: 20px; font-size: 0.75rem; padding: 4px 12px; border: 1px solid #2d3139; background: transparent; color: #8b949e; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+    .month-btn:hover { border-color: #58a6ff; color: #58a6ff; }
+    .month-btn.active { background: #58a6ff; border-color: #58a6ff; color: #0d1117; font-weight: 600; }
+    h1 { font-size: 1.4rem; font-weight: 700; margin: 0; }
+    .subtitle { color: #8b949e; font-size: 0.82rem; margin-top: 2px; }
+    .income-bar { background: #1a2d1a; border: 1px solid #2d4a2d; border-radius: 8px; padding: 12px 16px; }
+
+    .alert-card { background:#161b22; border:1px solid #30363d; border-left-width:4px; border-radius:10px; padding:12px 14px; margin-bottom:10px; }
+    .alert-card.critical { border-left-color:#f85149; }
+    .alert-card.warning { border-left-color:#d29922; }
+    .alert-title { font-size:0.82rem; font-weight:700; color:#e1e4e8; }
+    .alert-msg { font-size:0.75rem; color:#8b949e; margin-top:2px; }
+    .dq-note { font-size:0.75rem; color:#8b949e; padding:8px 0; border-bottom:1px solid #21262d; }
+    .nw-small { font-size:0.72rem; color:#8b949e; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #161b22; }
+    ::-webkit-scrollbar-thumb { background: #3d444d; border-radius: 3px; }
+
+    /* Privacy / conceal dollar values (safe to show to friends) */
+    .money { transition: filter 0.15s ease; }
+    body.conceal-money .money { filter: blur(0.45em); user-select: none; }
+    .pending-badge { font-size:0.6rem; text-transform:uppercase; letter-spacing:0.05em;
+      color:#d29922; background:#d2992222; border:1px solid #d2992255; border-radius:6px;
+      padding:0 5px; margin-left:6px; vertical-align:middle; white-space:nowrap; }
+    .money-toggle { display:inline-flex; align-items:center; gap:7px; cursor:pointer;
+      background:#161b22; border:1px solid #2d3139; border-radius:20px;
+      padding:5px 12px; font-size:0.72rem; color:#8b949e; user-select:none;
+      text-transform:uppercase; letter-spacing:0.06em; transition:all 0.15s; }
+    .money-toggle:hover { border-color:#58a6ff; color:#c9d1d9; }
+    .money-toggle input { accent-color:#58a6ff; width:14px; height:14px; cursor:pointer; margin:0; }
+  </style>
+</head>
+<body>
+<div class="container-fluid mx-auto py-6 px-6" style="max-width:1400px">
+
+  {% include 'partials/_header.html' %}
+  {% include 'partials/_tabs.html' %}
+  {% include 'partials/_view_networth.html' %}
+  {% include 'partials/_view_spending.html' %}
+  {% include 'partials/_view_trends.html' %}
+  {% include 'partials/_view_cashflow.html' %}
+
+</div>
+
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
