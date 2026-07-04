@@ -218,10 +218,19 @@ class ShareworksProvider(BaseProvider):
             time.sleep(4)
 
             if "login" in page.title().lower() or "userlogin" in page.url.lower():
-                raise ProviderError(
-                    "Chrome is open but not logged into Shareworks.\n"
-                    "Please log in, then run refresh again."
-                )
+                # Try filling the login form in the user's REAL Chrome with
+                # 1Password credentials first. The real profile is a trusted
+                # device, so 2FA is usually skipped; a challenge page (or no op
+                # access) still falls back to the manual-login flow.
+                if self._cdp_login(page, debug):
+                    page.goto(dashboard_url, timeout=30_000)
+                    page.wait_for_load_state("domcontentloaded", timeout=20_000)
+                    time.sleep(4)
+                if "login" in page.title().lower() or "userlogin" in page.url.lower():
+                    raise ProviderError(
+                        "Chrome is open but not logged into Shareworks.\n"
+                        "Please log in, then run refresh again."
+                    )
 
             if debug:
                 page.screenshot(path=str(DEBUG_SCREENSHOT))
@@ -238,6 +247,44 @@ class ShareworksProvider(BaseProvider):
             # forcing a re-login on every run. Exiting the sync_playwright block
             # drops the CDP connection while leaving Chrome (and the session) open.
             pass
+
+    def _cdp_login(self, page, debug):
+        """Fill the Shareworks login form in the user's real Chrome using
+        1Password credentials. Returns True once logged in; False falls back
+        to the manual flow (2FA challenge, op unavailable, layout change)."""
+        item = self.config.get("1password_item", "Shareworks")
+        try:
+            username = self.op_field(item, "username")
+            password = self.op_field(item, "password")
+        except Exception as e:
+            if debug:
+                print(f"[debug] CDP login: 1Password unavailable: {e}")
+            return False
+        try:
+            login_url = self.config.get(
+                "url", "https://shareworks.solium.com/solium/servlet/userLogin.do")
+            if "userlogin" not in page.url.lower():
+                page.goto(login_url, timeout=30_000)
+            page.wait_for_selector('input[name="account_number"]', state="visible", timeout=15_000)
+            page.fill('input[name="account_number"]', username)
+            page.fill('input[name="password"]', password)
+            page.click('#submit-btn')
+        except Exception as e:
+            if debug:
+                print(f"[debug] CDP login: form interaction failed: {e}")
+            return False
+        for _ in range(45):
+            time.sleep(1)
+            title = page.title().lower()
+            if "challenge" in title:
+                if debug:
+                    print("[debug] CDP login: 2FA challenge — manual login needed")
+                return False
+            if "login" not in title and "userlogin" not in page.url.lower():
+                if debug:
+                    print(f"[debug] CDP login: success — {page.title()}")
+                return True
+        return False
 
     # ------------------------------------------------------------------
     # Scraping

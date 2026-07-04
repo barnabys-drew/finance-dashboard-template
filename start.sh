@@ -173,19 +173,20 @@ PY
     echo "  Shareworks: ${SW_STATUS:-skipped}"
 }
 
-# --- 1. stop any existing server -------------------------------------------
-if lsof -ti:5000 >/dev/null 2>&1; then
-    echo "Stopping existing server on :5000..."
-    lsof -ti:5000 | xargs kill 2>/dev/null
-fi
-
-# --- 1b. build the dashboard CSS (Tailwind) if the CLI is present -----------
+# --- 1. build the dashboard CSS first, so the old server keeps serving while
+# we do slow work — the :5000 downtime window is just kill→Flask-boot ---------
 if [ -x ./bin/tailwindcss ]; then
     echo "Building CSS..."
     ./bin/tailwindcss -i static/src/input.css -o static/app.css --minify 2>/dev/null \
         || echo "  CSS build failed — using committed static/app.css."
 else
     echo "  Tailwind CLI not found (run ./scripts/setup-tailwind.sh) — using committed static/app.css."
+fi
+
+# --- 1b. stop any existing server -------------------------------------------
+if lsof -ti:5000 >/dev/null 2>&1; then
+    echo "Stopping existing server on :5000..."
+    lsof -ti:5000 | xargs kill 2>/dev/null
 fi
 
 # --- 2. start Flask in the background (serves cached data immediately) ------

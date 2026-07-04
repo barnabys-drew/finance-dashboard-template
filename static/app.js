@@ -119,9 +119,22 @@ function getViewData() {
 let lastDataFetch = 0;
 const STALE_MS = 60_000;
 
+let dataRetryTimer = null;
+
 async function loadData() {
-  const resp = await fetch('/api/data');
-  data = await resp.json();
+  // start.sh bounces the server on every run; a fetch that lands in that
+  // window must retry rather than leave the page half-rendered (blank charts).
+  let resp;
+  try {
+    resp = await fetch('/api/data');
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    data = await resp.json();
+  } catch (e) {
+    if (!dataRetryTimer) {
+      dataRetryTimer = setTimeout(() => { dataRetryTimer = null; loadData(); }, 2000);
+    }
+    return;
+  }
   lastDataFetch = Date.now();
   viewData = data;
   render();
@@ -1268,8 +1281,15 @@ function switchTab(tab) {
 }
 
 async function loadNetWorth() {
-  const resp = await fetch('/api/networth');
-  nwData = await resp.json();
+  try {
+    const resp = await fetch('/api/networth');
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    nwData = await resp.json();
+  } catch (e) {
+    if (nwData) renderNetWorth();   // keep showing the last good snapshot
+    else setTimeout(loadNetWorth, 2000);
+    return;
+  }
   renderNetWorth();
 }
 
