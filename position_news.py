@@ -13,7 +13,7 @@ import stat
 import time
 import urllib.parse
 import urllib.request
-import xml.etree.ElementTree as ET
+import xml.etree.ElementTree as ET  # nosemgrep: python.lang.security.use-defused-xml.use-defused-xml -- entity declarations are rejected before parsing
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
 from pathlib import Path
@@ -140,9 +140,13 @@ def fetch_yahoo_rss(symbol: str, timeout: int = 8):
             "Accept": "application/rss+xml, application/xml, text/xml",
         },
     )
-    with urllib.request.urlopen(req, timeout=timeout) as resp:
+    with urllib.request.urlopen(req, timeout=timeout) as resp:  # nosemgrep: python.lang.security.audit.dynamic-urllib-use-detected.dynamic-urllib-use-detected -- fixed host or localhost; scheme is not user-controlled
         raw = resp.read()
 
+    # Entity declarations are the only route to entity-expansion attacks, and
+    # real RSS does not declare any.
+    if b"<!ENTITY" in raw.upper():
+        raise ET.ParseError("feed declares XML entities")
     root = ET.fromstring(raw)
     stories = []
     for item in root.findall("./channel/item"):
