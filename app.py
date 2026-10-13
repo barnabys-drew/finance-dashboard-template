@@ -1,3 +1,4 @@
+import os
 import json
 from collections import defaultdict
 
@@ -213,4 +214,10 @@ def api_data():
 
 if __name__ == '__main__':
     print("Starting Family Finance Dashboard at http://localhost:5000")
-    app.run(debug=True, port=5000, host='0.0.0.0')
+    # The Werkzeug debugger executes arbitrary code, so it is opt-in and the
+    # server binds to loopback unless DASHBOARD_HOST says otherwise.
+    app.run(
+        debug=os.environ.get('DASHBOARD_DEBUG') == '1',
+        port=5000,
+        host=os.environ.get('DASHBOARD_HOST', '127.0.0.1'),
+    )

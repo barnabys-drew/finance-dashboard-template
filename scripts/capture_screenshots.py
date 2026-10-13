@@ -37,7 +37,7 @@ def _wait_for(url, timeout=30):
     deadline = time.time() + timeout
     while time.time() < deadline:
         try:
-            with urllib.request.urlopen(url, timeout=2) as r:
+            with urllib.request.urlopen(url, timeout=2) as r:  # nosemgrep: python.lang.security.audit.dynamic-urllib-use-detected.dynamic-urllib-use-detected -- fixed host or localhost; scheme is not user-controlled
                 if r.status == 200:
                     return True
         except Exception:
